@@ -6,6 +6,7 @@ import java.util.Arrays;
 public class TwentyFortyEight extends PApplet {
     public Tile[][] tiles = new Tile[4][4];
     public ArrayList<Tile> offGrid = new ArrayList<Tile>();
+    public ArrayList<Tile[][]> previousState;
     public long score;
     public boolean gameOver = false;
 
@@ -32,7 +33,8 @@ public class TwentyFortyEight extends PApplet {
 
         tiles[row][col] = new Tile(new int[] {row, col}, this);
 
-        score = 0;
+        score = 12345678;
+        previousState = new ArrayList<Tile[][]>();
 
         background(250,250,250);
         frameRate(144);
@@ -46,12 +48,12 @@ public class TwentyFortyEight extends PApplet {
 
     public void displayBackdrop() {
         clear();
-        background(250,250,250);
+        background(250, 248, 239);
         noStroke();
-        fill(192,192,192);
-        rect(25, 25, 162.5F, 50, 10);
-        rect(212.5F, 25, 162.5F, 50, 10);
-        rect(25, 100, 350, 350, 10);
+        fill(187,173,160);
+        rect(25, 25, 162.5F, 50, 4);
+        rect(212.5F, 25, 162.5F, 50, 4);
+        rect(25, 100, 350, 350, 4);
     }
 
     public void displayBoard() {
@@ -79,7 +81,7 @@ public class TwentyFortyEight extends PApplet {
 
     public void displayScore() {
         textAlign(CENTER, CENTER);
-        fill(255,75,0);
+        fill(255,255,255 );
         textSize(32);
         text("Score:", 25F, 21.5F, 162.5F, 50F);
         text(score + "", 212.5F, 21.5F, 162.5F, 50F);
@@ -87,13 +89,13 @@ public class TwentyFortyEight extends PApplet {
 
     public void keyPressed() {
         if(gameOver) {
-            //display game over screen
+            resetGame();
         }
         else {
             long moveScore = 0;
-            Tile[][] initialState = captureInitialState();
-            if(key == 'w') {
-                completeLerps();
+            captureState();
+            if(key == 'w' || (key == CODED && keyCode == UP)) {
+                completeProcesses();
                 for(int row = 0; row < 4; row++) {
                     for(int col = 0; col < 3; col++) {
                         while(tiles[row][col] == null && tiles[row][col + 1] != null) {
@@ -119,8 +121,8 @@ public class TwentyFortyEight extends PApplet {
                     }
                 }
             }
-            else if(key == 'a') {
-                completeLerps();
+            else if(key == 'a' || (key == CODED && keyCode == LEFT)) {
+                completeProcesses();
                 for(int row = 0; row < 3; row++) {
                     for(int col = 0; col < 4; col++) {
                         while(tiles[row][col] == null && tiles[row + 1][col] != null) {
@@ -146,8 +148,8 @@ public class TwentyFortyEight extends PApplet {
                     }
                 }
             }
-            else if(key == 's') {
-                completeLerps();
+            else if(key == 's' || (key == CODED && keyCode == DOWN)) {
+                completeProcesses();
                 for(int row = 0; row < 4; row++) {
                     for(int col = 3; col > 0; col--) {
                         while(tiles[row][col] == null && tiles[row][col - 1] != null) {
@@ -173,8 +175,8 @@ public class TwentyFortyEight extends PApplet {
                     }
                 }
             }
-            else if(key == 'd') {
-                completeLerps();
+            else if(key == 'd' || (key == CODED && keyCode == RIGHT)) {
+                completeProcesses();
                 for(int row = 3; row > 0; row--) {
                     for(int col = 0; col < 4; col++) {
                         while(tiles[row][col] == null && tiles[row - 1][col] != null) {
@@ -200,35 +202,49 @@ public class TwentyFortyEight extends PApplet {
                     }
                 }
             }
+            else if(key == 'r') {
+                resetGame();
+                return;
+            }
             else {
                 return;
             }
-            score += moveScore;
-            if(gameOver()) {
 
-            }
-            else {
-                spawnIfChanged(initialState);
-                resetRecentlyMerged();
-            }
+            spawn();
+            score += moveScore;
         }
     }
 
-    private Tile[][] captureInitialState() {
-        if (tiles == null) {
-            return null;
+    public void resetGame() {
+        tiles = new Tile[4][4];
+        offGrid.clear();
+        int row =(int) (Math.random() * 4);
+        int col =(int) (Math.random() * 4);
+
+        tiles[row][col] = new Tile(new int[] {row, col}, this);
+
+        while(tiles[row][col] != null) {
+            row =(int) (Math.random() * 4);
+            col =(int) (Math.random() * 4);
         }
 
-        Tile[][] initialState = new Tile[4][4];
+        tiles[row][col] = new Tile(new int[] {row, col}, this);
+
+        score = 0;
+    }
+
+    private void captureState() {
+        Tile[][] capturedState = new Tile[4][4];
 
         for (int i = 0; i < 4; i++) {
-            initialState[i] = Arrays.copyOf(tiles[i], 4);
+            capturedState[i] = Arrays.copyOf(tiles[i], 4);
         }
 
-        return initialState;
+        previousState.add(capturedState);
     }
 
-    private void spawnIfChanged(Tile[][] initialState) {
+    private void spawn() {
+        Tile[][] initialState = previousState.get(previousState.size() - 1);
         boolean changed = false;
         for (int row = 0; row < 4 && !changed; row++) {
             for (int col = 0; col < 4 && !changed; col++) {
@@ -267,21 +283,12 @@ public class TwentyFortyEight extends PApplet {
         return true;
     }
 
-    private void resetRecentlyMerged() {
-        for (int row = 0; row < 4; row++) {
-            for (int col = 0; col < 4; col++) {
-                if(tiles[row][col] != null) {
-                    tiles[row][col].setRecentlyMerged(false);
-                }
-            }
-        }
-    }
-
-    private void completeLerps() {
+    private void completeProcesses() {
         for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 4; col++) {
                 if(tiles[row][col] != null) {
                     tiles[row][col].completeLerp();
+                    tiles[row][col].setRecentlyMerged(false);
                 }
             }
         }

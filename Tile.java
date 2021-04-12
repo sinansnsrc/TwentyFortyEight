@@ -101,7 +101,7 @@ public class Tile {
         else{
             sketch.fill(tileColors[10][0], tileColors[10][1], tileColors[10][2]);
         }
-        sketch.rect(screenPosition[0], screenPosition[1], 84.375F, 84.375F, 10);
+        sketch.rect(screenPosition[0], screenPosition[1], 84.375F, 84.375F, 4);
 
         if(value <= 8) {
             sketch.fill(119, 110, 101);
