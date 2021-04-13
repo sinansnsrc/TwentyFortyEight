@@ -8,7 +8,6 @@ public class TwentyFortyEight extends PApplet {
     public ArrayList<Tile> offGrid = new ArrayList<Tile>();
     public ArrayList<Tile[][]> previousState;
     public long score;
-    public boolean gameOver = false;
 
     public static void main(String[] args) {
         PApplet.main(new String[] {"TwentyFortyEight"});
@@ -33,17 +32,20 @@ public class TwentyFortyEight extends PApplet {
 
         tiles[row][col] = new Tile(new int[] {row, col}, this);
 
-        score = 12345678;
+        score = 0;
         previousState = new ArrayList<Tile[][]>();
 
         background(250,250,250);
-        frameRate(144);
+        frameRate(60);
     }
 
     public void draw() {
         displayBackdrop();
         displayScore();
         displayBoard();
+        if(gameOver()) {
+            displayEndScreen();
+        }
     }
 
     public void displayBackdrop() {
@@ -81,14 +83,27 @@ public class TwentyFortyEight extends PApplet {
 
     public void displayScore() {
         textAlign(CENTER, CENTER);
-        fill(255,255,255 );
+        fill(255,255,255);
         textSize(32);
         text("Score:", 25F, 21.5F, 162.5F, 50F);
         text(score + "", 212.5F, 21.5F, 162.5F, 50F);
     }
 
+    public void displayEndScreen() {
+        fill(250, 248, 239, 215);
+        rect(0,0, 400F, 475F);
+        fill(187,173,160);
+        textAlign(CENTER, CENTER);
+        textSize(50);
+        text("Game Over!", 200, 75);
+        text("Final Score:", 200, 225);
+        text(score+"", 200, 275);
+        textSize(30);
+        text("Press Any Key To Restart", 200, 375);
+    }
+
     public void keyPressed() {
-        if(gameOver) {
+        if(gameOver()) {
             resetGame();
         }
         else {
@@ -109,7 +124,7 @@ public class TwentyFortyEight extends PApplet {
                         }
 
                         if(tiles[row][col] != null && tiles[row][col + 1] != null) {
-                            if(tiles[row][col].getValue() == tiles[row][col + 1].getValue()) {
+                            if(tiles[row][col].getValue() == tiles[row][col + 1].getValue()  && !tiles[row][col].getRecentlyMerged() && !tiles[row][col + 1].getRecentlyMerged() ) {
                                 tiles[row][col + 1].setTargetPosition(new int[] {row, col}, true);
                                 tiles[row][col].incrementValue();
                                 offGrid.add(tiles[row][col + 1]);
@@ -136,7 +151,7 @@ public class TwentyFortyEight extends PApplet {
                         }
 
                         if(tiles[row][col] != null && tiles[row + 1][col] != null) {
-                            if(tiles[row][col].getValue() == tiles[row + 1][col].getValue()) {
+                            if(tiles[row][col].getValue() == tiles[row + 1][col].getValue()  && !tiles[row][col].getRecentlyMerged() && !tiles[row + 1][col].getRecentlyMerged() ) {
                                 tiles[row + 1][col].setTargetPosition(new int[] {row, col}, true);
                                 tiles[row][col].incrementValue();
                                 offGrid.add(tiles[row + 1][col]);
@@ -163,7 +178,7 @@ public class TwentyFortyEight extends PApplet {
                         }
 
                         if(tiles[row][col] != null && tiles[row][col - 1] != null) {
-                            if(tiles[row][col].getValue() == tiles[row][col - 1].getValue()) {
+                            if(tiles[row][col].getValue() == tiles[row][col - 1].getValue()  && !tiles[row][col].getRecentlyMerged() && !tiles[row][col - 1].getRecentlyMerged() ) {
                                 tiles[row][col - 1].setTargetPosition(new int[] {row, col}, true);
                                 tiles[row][col].incrementValue();
                                 offGrid.add(tiles[row][col - 1]);
@@ -274,12 +289,31 @@ public class TwentyFortyEight extends PApplet {
         for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 4; col++) {
                 if(tiles[row][col] == null) {
-                    gameOver = false;
                     return false;
                 }
             }
         }
-        gameOver = true;
+
+        for(int row = 3; row > 0; row--) {
+            for(int col = 0; col < 4; col++) {
+                if(tiles[row][col] != null && tiles[row - 1][col] != null) {
+                    if(tiles[row][col].getValue() == tiles[row - 1][col].getValue()) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        for(int row = 0; row < 4; row++) {
+            for(int col = 3; col > 0; col--) {
+                if(tiles[row][col] != null && tiles[row][col - 1] != null) {
+                    if(tiles[row][col].getValue() == tiles[row][col - 1].getValue()) {
+                        return false;
+                    }
+                }
+            }
+        }
+
         return true;
     }
 

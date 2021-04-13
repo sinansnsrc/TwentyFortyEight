@@ -1,5 +1,4 @@
 import processing.core.PApplet;
-//Add undos, game over screen, tile spawn animation, and make it somewhat prettier
 
 public class Tile {
     private int value;
@@ -7,6 +6,8 @@ public class Tile {
     private float[] targetPosition;
     private float[] distanceToTarget;
     private int lerpIteration;
+    private int sizeIteration;
+    private float size;
     private PApplet sketch;
     private boolean destroyOnReachTarget;
     private boolean recentlyMerged;
@@ -24,6 +25,8 @@ public class Tile {
         targetPosition = screenPosition;
         distanceToTarget = new float[] {screenPosition[0] - targetPosition[0], screenPosition[1] - targetPosition[1]};
         recentlyMerged = false;
+        size = 44.375F;
+        sizeIteration = 0;
         tileColors = new int[][] {{238, 228,218}, {237, 224, 200}, {242, 177, 121}, {245, 149, 99}, {246, 124, 95}, {246, 94, 59}, {237, 207, 114}, {237, 204, 97}, {237, 200, 80}, {237, 197, 63}, {237, 194, 46}};
     }
 
@@ -44,10 +47,14 @@ public class Tile {
     }
 
     public boolean lerpToPosition() {
-        if(lerpIteration < 20) {
+        if(sizeIteration < 10) {
+            sizeIteration++;
+            size += 4F;
+        }
+        if(lerpIteration < 10) {
             lerpIteration++;
-            screenPosition[0] -= distanceToTarget[0] * 0.05;
-            screenPosition[1] -= distanceToTarget[1] * 0.05;
+            screenPosition[0] -= distanceToTarget[0] * 0.1;
+            screenPosition[1] -= distanceToTarget[1] * 0.1;
         }
         else {
             return destroyOnReachTarget;
@@ -56,6 +63,8 @@ public class Tile {
     }
 
     public void completeLerp() {
+        size = 84.375F;
+        sizeIteration = 20;
         screenPosition = targetPosition;
         lerpIteration = 20;
     }
@@ -101,7 +110,8 @@ public class Tile {
         else{
             sketch.fill(tileColors[10][0], tileColors[10][1], tileColors[10][2]);
         }
-        sketch.rect(screenPosition[0], screenPosition[1], 84.375F, 84.375F, 4);
+
+        sketch.rect(screenPosition[0] + ((84.375F - size) / 2), screenPosition[1] + ((84.375F - size) / 2), size, size, 4);
 
         if(value <= 8) {
             sketch.fill(119, 110, 101);
