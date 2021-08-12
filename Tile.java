@@ -1,4 +1,3 @@
-//test
 import processing.core.PApplet;
 
 public class Tile {
